@@ -15,9 +15,27 @@ module BigramResolver
   end
 end
 
+module IndexStorage
+  STORAGE_FILE_PATH = '../tmp/hash_table'.freeze
+
+  class << self
+    def save
+      File.open(STORAGE_FILE_PATH, 'wb') do |file|
+        Marshal.dump(TransposedIndexBuilder.build, file)
+      end
+    end
+
+    def load
+      File.open(STORAGE_FILE_PATH, 'rb') do |file|
+        Marshal.load(file)
+      end
+    end
+  end
+end
+
 module TransposedIndexBuilder
   class << self
-    def build(reader: $stdin, writer: $stdout)
+    def build(reader: $stdin)
       transposed_index = {}
       CSV.new(reader, headers: true).each_with_index do |csv_row, index|
         address = build_address_text(csv_row)
@@ -48,5 +66,6 @@ def search_address(transposed_index:, query:)
 end
 
 if __FILE__ == $0
-  $stdout.puts search_address(transposed_index: TransposedIndexBuilder.build, query: ARGV[0])
+  IndexStorage.save
+  $stdout.puts search_address(transposed_index: IndexStorage.load, query: ARGV[0])
 end
