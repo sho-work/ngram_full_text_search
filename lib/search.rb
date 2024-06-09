@@ -10,7 +10,7 @@ module BigramResolver
   N_GRAM_SIZE = 2
 
   def self.resolve(full_text)
-    # 文字列full_textに対して、全ての文字を走査する
+    # NOTE: 文字列full_textに対して、全ての文字を走査する
     (0...(full_text.length - 1)).map { full_text[_1, N_GRAM_SIZE] }
   end
 end
@@ -26,7 +26,7 @@ module TransposedIndexBuilder
           transposed_index[bigram] << csv_row['郵便番号'] + ' ' + address
         end
       end
-      $stdout.puts transposed_index
+      transposed_index
     end
 
     private
@@ -37,6 +37,16 @@ module TransposedIndexBuilder
   end
 end
 
+def search_address(transposed_index:, query:)
+  bigrams = BigramResolver.resolve(query)
+  results = bigrams.map { transposed_index[_1] || [] }
+  # NOTE: queryをBigramにしたときの、全てのBigramあたりの検索結果に対して、積集合をとる。
+  common_results = results.reduce do |common, addresses|
+    common & addresses
+  end
+  common_results.empty? ? '検索結果はありません' : common_results
+end
+
 if __FILE__ == $0
-  TransposedIndexBuilder.build
+  $stdout.puts search_address(transposed_index: TransposedIndexBuilder.build, query: ARGV[0])
 end
