@@ -3,7 +3,7 @@
 module TransposedIndexBuilder
   class IndexBuildError < StandardError; end
   # NOTE: メモリ消費量を考慮して、大雑把に設定したのでホストマシンの状況に合わせて変更する必要がある。
-  CHUNK_SIZE = 10_000
+  CHUNK_SIZE = 1_000
 
   class << self
     def build(reader: $stdin)
